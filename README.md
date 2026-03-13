@@ -1,4 +1,4 @@
-# Nova OS
+# Nova OS – Personal AI System
 
 ![Python](https://img.shields.io/badge/python-3.11-blue)
 ![GitHub stars](https://img.shields.io/github/stars/tanjuaksit/Nova_Os)
@@ -85,7 +85,7 @@ python main.py
 ```
 ---
 ### Author: Tanju Aksit
-### Project: Nova OS
+### Project: Nova OS – Personal AI System
 
 ---
 
@@ -170,6 +170,6 @@ python main.py
 ```
 ---
 ### Author: Tanju Aksit
-### Project: Nova OS
+### Project: Nova OS – Personal AI System
 
 ---
