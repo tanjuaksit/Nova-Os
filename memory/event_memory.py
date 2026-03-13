@@ -12,10 +12,10 @@ from config.paths import DB_PATH
 from config.loader import config
 
 
-class EventMemory:
+class EventMemory:  # <--- Sınıf adı EventMemory olarak güncellendi!
 
-    def __init__(self):
-
+    def __init__(self, brain=None):
+        self.brain = brain
         self.conn = sqlite3.connect(DB_PATH)
         self.cursor = self.conn.cursor()
 
@@ -32,18 +32,14 @@ class EventMemory:
         self.conn.commit()
 
     def add_event(self, subject, action, target=None):
-
         ts = datetime.now().isoformat()
-
         self.cursor.execute(
             "INSERT INTO events (subject, action, target, timestamp) VALUES (?, ?, ?, ?)",
             (subject, action, target, ts)
         )
-
         self.conn.commit()
 
     def get_recent_events(self, subject=None, limit=5):
-
         if subject is None:
             subject = config.get("name", "User")
 
@@ -58,7 +54,6 @@ class EventMemory:
         return self.cursor.fetchall()
 
     def search_events(self, keyword):
-
         self.cursor.execute("""
         SELECT subject, action, target, timestamp
         FROM events

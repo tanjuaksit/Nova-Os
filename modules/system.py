@@ -21,3 +21,10 @@ class SystemModule:
 
         os.system("shutdown /s /t 5")
         return "Bilgisayar 5 saniye içinde kapanacak."
+
+    def execute(self, tool_name: str, **kwargs):
+        """Router tarafından çağrılan modül yürütücüsü"""
+        if tool_name == "music":
+            return "Müzik modülü henüz aktif değil veya entegrasyon aşamasında."
+        # Diğer araçlar...
+        return f"SystemModule: {tool_name} komutu çalıştırıldı."
