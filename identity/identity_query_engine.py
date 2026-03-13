@@ -17,14 +17,11 @@ class IdentityQueryEngine:
         self.identity = identity_engine
 
     def find_person(self, name):
-
-        # kayıtlı kişiler
-        people = list(self.identity.people.people.keys())
+        people = list(self.identity.people.nodes.keys())
 
         if not people:
             return None
 
-        # fuzzy match
         match = difflib.get_close_matches(
             name,
             people,
@@ -43,13 +40,23 @@ class IdentityQueryEngine:
 
         # yaş sorusu
         if "kaç yaş" in t:
+            # İsim var mı kontrol et
+            name_match = re.search(r"(.+?)\s+kaç yaş", t)
+            if name_match:
+                name = name_match.group(1).strip().title()
+                # Graph'ta yaş ara
+                from identity.knowledge_graph import KnowledgeGraph
+                graph = KnowledgeGraph()
+                for edge in graph.graph["edges"]:
+                    if edge["from"].lower() == name.lower() and edge["relation"] == "yaş":
+                        return f"{name} {edge['to']} yaşında."
+                return f"{name} hakkında yaş bilgisi yok."
 
+            # İsim yoksa kullanıcının yaşı
             age = self.identity.get_value("age")
-
             if age:
-                return f"{config.get('name','Kullanıcı')} {age} yaşında."
-            else:
-                return "Yaş bilgisi hafızamda bulunmuyor."
+                return f"{config.get('name', 'Kullanıcı')} {age} yaşında."
+            return "Yaş bilgisi hafızamda bulunmuyor."
 
         # kişi sorgusu
         match = re.search(r"(.+?) kim", t)

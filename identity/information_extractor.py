@@ -35,30 +35,32 @@ class InformationExtractor:
 
         prompt = f"""Sen bir veri çıkarma aracısın. Sadece JSON üretirsin. Asla açıklama yapmazsın. Asla Türkçe cümle yazmazsın.
 
-        Aşağıdaki cümleden bilgileri çıkar ve SADECE bu JSON formatında döndür:
+Aşağıdaki cümleden bilgileri çıkar ve SADECE bu JSON formatında döndür:
 
-        {{
-          "person": null,
-          "relation": null,
-          "school": null,
-          "age": null,
-          "time": null,
-          "intent": "ÖĞRETME"
-        }}
+{{
+  "person": null,
+  "relation": null,
+  "owner": "kullanıcı",
+  "school": null,
+  "age": null,
+  "time": null,
+  "intent": "ÖĞRETME"
+}}
 
-        intent değerleri sadece şunlar olabilir: ÖĞRETME, SORU, SOHBET
+Kurallar:
+- owner: ilişkinin sahibi kim? Kullanıcı mı yoksa başka biri mi? Örnek: "Sudenin arkadaşı Gülpınar" → owner: "Sude". "Arif benim arkadaşım" → owner: "kullanıcı"
+- intent değerleri sadece şunlar olabilir: ÖĞRETME, SORU, SOHBET
+- age: sadece person'a ait yaş. Kullanıcının yaşı değil.
 
-        Cümle: "{text}"
+Cümle: "{text}"
 
-        Sadece JSON döndür. Başka hiçbir şey yazma:"""
+Sadece JSON döndür. Başka hiçbir şey yazma:"""
 
         raw = self._ask(prompt).strip()
 
         try:
-            # Tüm kod bloklarını temizle
             raw = raw.replace("```json", "").replace("```", "").strip()
 
-            # İlk { ile son } arasını al
             start = raw.find("{")
             end = raw.rfind("}") + 1
 

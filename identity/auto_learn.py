@@ -29,23 +29,51 @@ class AutoLearner:
         if not result:
             return None
 
-        # SORU ise öğrenme değil, sorguya bırak
         intent = result.get("intent", "")
         if intent == "SORU":
             return None
 
         person = result.get("person")
         relation = result.get("relation")
+        owner = result.get("owner", "kullanıcı")
         school = result.get("school")
         age = result.get("age")
         time = result.get("time")
 
-        if age and not person:
-            self.identity.set_value("age", str(age))
-            return f"Yaş kaydedildi: {age}"
+        if age:
+            if person:
+                self.graph.set_attribute(person, "yaş", str(age))
+                if relation:
+                    subject = "Kullanıcı" if not owner or owner == "kullanıcı" else owner.title()
+                    self.graph.add_relation(subject, relation, person)
+                return f"{person} yaşı kaydedildi: {age}"
+            else:
+                # İlişki kelimesi üzerinden kişiyi bul
+                relation_keywords = [
+                    "baldız", "baldızım", "sevgili", "sevgilim",
+                    "arkadaş", "arkadaşım", "bacanak", "kardeş",
+                    "kardeşim", "dost", "dostum"
+                ]
+                found_person = None
+                for keyword in relation_keywords:
+                    if keyword in t:
+                        for edge in self.graph.graph["edges"]:
+                            if edge.get("relation", "").lower() == keyword:
+                                found_person = edge["to"]
+                                break
+                    if found_person:
+                        break
+
+                if found_person:
+                    self.graph.set_attribute(found_person, "yaş", str(age))
+                    return f"{found_person} yaşı kaydedildi: {age}"
+                else:
+                    self.identity.set_value("age", str(age))
+                    return f"Yaş kaydedildi: {age}"
 
         if person and relation:
-            self.graph.add_relation("Kullanıcı", relation, person)
+            subject = "Kullanıcı" if not owner or owner == "kullanıcı" else owner.title()
+            self.graph.add_relation(subject, relation, person)
             if school:
                 self.graph.set_attribute(person, "okul", school)
             if time:
