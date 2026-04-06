@@ -6,119 +6,72 @@ Copyright (c) 2026 Tanju Aksit
 This source code is licensed under the Nova OS Author Credit License.
 """
 
-import re
+import json
+import requests
 
 
 class InformationExtractor:
 
+    def __init__(self, model="nova"):
+        self.model = model
+        self.url = "http://localhost:11434/api/generate"
+
+    def _ask(self, prompt: str) -> str:
+        try:
+            response = requests.post(
+                self.url,
+                json={
+                    "model": self.model,
+                    "prompt": prompt,
+                    "stream": False
+                },
+                timeout=60
+            )
+            return response.json().get("response", "")
+        except Exception:
+            return ""
+
     def extract(self, text: str):
 
-        t = text.lower()
+        prompt = f"""Sen bir veri çıkarma aracısın. Sadece JSON üretirsin. Asla açıklama yapmazsın. Asla Türkçe cümle yazmazsın.
 
-        result = {
-            "person": None,
-            "relation": None,
-            "age": None,
-            "school": None,
-            "grade": None
-        }
+        Aşağıdaki cümleden bilgileri çıkar ve SADECE bu JSON formatında döndür:
 
-        # -----------------
-        # AGE
-        # -----------------
+        {{
+          "person": null,
+          "relation": null,
+          "school": null,
+          "age": null,
+          "time": null,
+          "intent": "ÖĞRETME"
+        }}
 
-        age_match = re.search(r"\b(\d{1,3})\s*yaşında\b", t)
+        intent değerleri sadece şunlar olabilir: ÖĞRETME, SORU, SOHBET
 
-        if age_match:
-            result["age"] = int(age_match.group(1))
+        Cümle: "{text}"
 
-        # -----------------
-        # SCHOOL LEVEL
-        # -----------------
+        Sadece JSON döndür. Başka hiçbir şey yazma:"""
 
-        if "ilkokul" in t:
-            result["school"] = "ilkokul"
+        raw = self._ask(prompt).strip()
 
-        elif "ortaokul" in t:
-            result["school"] = "ortaokul"
+        try:
+            # Tüm kod bloklarını temizle
+            raw = raw.replace("```json", "").replace("```", "").strip()
 
-        elif "lise" in t:
-            result["school"] = "lise"
+            # İlk { ile son } arasını al
+            start = raw.find("{")
+            end = raw.rfind("}") + 1
 
-        elif "üniversite" in t or "universite" in t:
-            result["school"] = "üniversite"
+            if start == -1 or end == 0:
+                return None
 
-        # -----------------
-        # GRADE (3. sınıf gibi)
-        # -----------------
+            json_str = raw[start:end]
+            result = json.loads(json_str)
 
-        grade_match = re.search(r"(\d{1,2})\.?\s*sınıf", t)
+            if not any(result.values()):
+                return None
 
-        if grade_match:
-            result["grade"] = int(grade_match.group(1))
+            return result
 
-        # -----------------
-        # RELATION
-        # -----------------
-
-        relations = [
-            "kardeşim",
-            "arkadaşım",
-            "sevgilim",
-            "kız arkadaşım",
-            "eski sevgilim",
-            "dostum",
-            "tanıdığım",
-            "değerlim"
-        ]
-
-        for r in relations:
-            if r in t:
-                result["relation"] = r
-                break
-
-        # -----------------
-        # PERSON NAME
-        # -----------------
-
-        words = t.split()
-
-        # relation kelimesinden önceki kelimeyi isim kabul et
-        if result["relation"]:
-
-            rel_word = result["relation"].split()[0]
-
-            rel_index = None
-
-            for i, w in enumerate(words):
-                if rel_word in w:
-                    rel_index = i
-                    break
-
-            if rel_index is not None and rel_index > 0:
-
-                candidate = words[rel_index - 1]
-
-                if len(candidate) > 2:
-                    result["person"] = candidate.title()
-
-        # fallback: ilk kelimeyi isim kabul et
-        if not result["person"] and len(words) > 0:
-
-            candidate = words[0]
-
-            if candidate not in [
-                "benim",
-                "ve",
-                "ile",
-                "bir",
-                "bu"
-            ]:
-                result["person"] = candidate.title()
-
-        # -----------------
-
-        if not any(result.values()):
+        except Exception:
             return None
-
-        return result

@@ -45,9 +45,14 @@ class RelationshipQueryEngine:
 
         relation_map = {
             "sevgilim": "sevgilisi",
+            "sevgili": "sevgilisi",
             "arkadaşım": "arkadaşı",
+            "arkadaş": "arkadaşı",
             "eski sevgilim": "eski sevgilisi",
-            "dostum": "dostu"
+            "kardeşim": "kardeşi",
+            "kardeş": "kardeşi",
+            "dostum": "dostu",
+            "dost": "dostu"
         }
 
         rel_text = relation_map.get(rel, rel)
