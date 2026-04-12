@@ -4,9 +4,7 @@ Author: Tanju Aksit
 Copyright (c) 2026 Tanju Aksit
 
 This source code is licensed under the Nova OS Author Credit License.
-"""
-
-from config.loader import config
+"""şerifcan befrom config.loader import config
 
 
 class ContextManager:
